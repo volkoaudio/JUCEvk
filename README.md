@@ -16,7 +16,7 @@ AudioParameterFloatVk *_paramFloat;
 In PluginProcessor.cpp
 
 <code>
-auto lambdaParamFloat = [this] (float paramValue)
+auto lambdaParamFloat = &#91;this&#93; (float paramValue)
 {
 Logger::getCurrentLogger()->writeToLog(String("ParamFloat: ") + String(paramValue));
 };
