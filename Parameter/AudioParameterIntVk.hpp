@@ -71,19 +71,19 @@ protected:
     int minValue, maxValue;
     float value, defaultValue;
     
-    float getValue() const override;
-    void setValue (float newValue) override;
-    float getDefaultValue() const override;
-    int getNumSteps() const override;
-    String getText (float, int) const override;
-    float getValueForText (const String&) const override;
-    
     int limitRange (int) const noexcept;
     float convertTo0to1 (int) const noexcept;
     int convertFrom0to1 (float) const noexcept;
     
     // VK
 public:
+    float getValue() const override;
+    void setValue (float newValue) override;
+    float getDefaultValue() const override;
+    int getNumSteps() const override;
+    String getText (float, int) const override;
+    float getValueForText (const String&) const override;
+
     void setSetValueCallback(std::function<void(float)> setValueCallback)
     {
         _setValueCallback = setValueCallback;

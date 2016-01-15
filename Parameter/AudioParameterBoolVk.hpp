@@ -61,15 +61,15 @@ protected:
     //==============================================================================
     float value, defaultValue;
     
+    // VK
+public:
     float getValue() const override;
     void setValue (float newValue) override;
     float getDefaultValue() const override;
     int getNumSteps() const override;
     String getText (float, int) const override;
     float getValueForText (const String&) const override;
-    
-    // VK
-public:
+
     void setSetValueCallback(std::function<void(float)> setValueCallback)
     {
         _setValueCallback = setValueCallback;
