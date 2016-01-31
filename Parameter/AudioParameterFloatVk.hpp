@@ -84,15 +84,14 @@ protected:
     //==============================================================================
     float value, defaultValue;
     
-    // VK
-public:
     float getValue() const override;
     float getDefaultValue() const override;
     void setValue (float newValue) override;
     int getNumSteps() const override;
     String getText (float, int) const override;
     float getValueForText (const String&) const override;
-
+    
+public:
     void setSetValueCallback(std::function<void(float)> setValueCallback)
     {
         _setValueCallback = setValueCallback;
@@ -166,6 +165,13 @@ inline AudioParameterFloatVk& AudioParameterFloatVk::operator= (float newValue)
 
     if (value != normalisedValue)
         setValueNotifyingHost (normalisedValue);
+    
+    if (_setValueCallback)
+        _setValueCallback(newValue);
+    
+    Logger::getCurrentLogger()->writeToLog( String("newValue: ") + String(newValue) +
+                                            String("normalisedValue: ") + String(normalisedValue)
+                                           );
 
     return *this;
 }
