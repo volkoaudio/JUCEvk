@@ -168,10 +168,6 @@ inline AudioParameterFloatVk& AudioParameterFloatVk::operator= (float newValue)
     
     if (_setValueCallback)
         _setValueCallback(newValue);
-    
-    Logger::getCurrentLogger()->writeToLog( String("newValue: ") + String(newValue) +
-                                            String("normalisedValue: ") + String(normalisedValue)
-                                           );
 
     return *this;
 }
