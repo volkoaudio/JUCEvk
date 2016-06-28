@@ -27,6 +27,7 @@
 #define __AUDIOPARAMETERINTVK_HEADER_038746_
 
 #include "../JuceLibraryCode/JuceHeader.h"
+#include <atomic>
 
 class JUCE_API  AudioParameterIntVk  : public AudioProcessorParameterWithID
 {
@@ -36,9 +37,9 @@ public:
      On creation, its value is set to the default value.
      */
     AudioParameterIntVk (String parameterID, String name,
-                       int minValue, int maxValue,
-                       int defaultValue);
-
+                         int minValue, int maxValue,
+                         int defaultValue);
+    
     /** Creates an AudioParameterInt with an ID, name, range and lambda.
      Note that the min and max range values are inclusive.
      On creation, its value is set to the default value.
@@ -46,14 +47,14 @@ public:
     AudioParameterIntVk (String parameterID, String name,
                          int minValue, int maxValue,
                          int defaultValue,
-                         std::function<void(float)> setValueCallback
+                         std::function<void(float, String)> setValueCallback
                          );
-
+    
     /** Destructor. */
     ~AudioParameterIntVk();
     
     /** Returns the parameter's current value as an integer. */
-    int get() const noexcept                    { return roundToInt (value); }
+    int get() const noexcept                    { return roundToInt (int(float(value))); }
     /** Returns the parameter's current value as an integer. */
     operator int() const noexcept               { return get(); }
     
@@ -65,11 +66,13 @@ public:
     /** Returns the parameter's range. */
     Range<int> getRange() const noexcept        { return Range<int> (minValue, maxValue); }
     
+    void resetToDefaultValue();
+    bool isDefaultValue();
     
 protected:
     //==============================================================================
-    int minValue, maxValue;
-    float value, defaultValue;
+    std::atomic<int> minValue, maxValue;
+    std::atomic<float> value, defaultValue;
     
     int limitRange (int) const noexcept;
     float convertTo0to1 (int) const noexcept;
@@ -83,13 +86,13 @@ protected:
     float getValueForText (const String&) const override;
     
 public:
-    void setSetValueCallback(std::function<void(float)> setValueCallback)
+    void setSetValueCallback(std::function<void(float, String)> setValueCallback)
     {
         _setValueCallback = setValueCallback;
     }
     
 protected:
-    std::function<void(float)> _setValueCallback;
+    std::function<void(float, String)> _setValueCallback;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioParameterIntVk)
 };
@@ -106,7 +109,7 @@ inline AudioParameterIntVk::AudioParameterIntVk (String pid, String nm, int mn, 
 }
 
 inline AudioParameterIntVk::AudioParameterIntVk (String pid, String nm, int mn, int mx, int def
-                                          , std::function<void(float)> setValueCallback)
+                                                 , std::function<void(float, String)> setValueCallback)
 : AudioProcessorParameterWithID (pid, nm)
 , minValue (mn), maxValue (mx)
 , value ((float) def)
@@ -120,7 +123,7 @@ inline AudioParameterIntVk::~AudioParameterIntVk() {}
 
 inline int AudioParameterIntVk::limitRange (int v) const noexcept
 {
-    return jlimit (minValue, maxValue, v);
+    return jlimit (int(minValue), int(maxValue), v);
 }
 
 inline float AudioParameterIntVk::convertTo0to1 (int v) const noexcept
@@ -135,14 +138,14 @@ inline int AudioParameterIntVk::convertFrom0to1 (float v) const noexcept
 
 inline float AudioParameterIntVk::getValue() const
 {
-    return convertTo0to1 (roundToInt (value));
+    return convertTo0to1 (roundToInt (float(value)));
 }
 
 inline void AudioParameterIntVk::setValue (float newValue)
 {
     value = (float) convertFrom0to1 (newValue);
     if (_setValueCallback)
-        _setValueCallback(newValue);
+        _setValueCallback(value, paramID);
 }
 
 inline float AudioParameterIntVk::getDefaultValue() const
@@ -173,6 +176,16 @@ inline AudioParameterIntVk& AudioParameterIntVk::operator= (int newValue)
         setValueNotifyingHost (normalisedValue);
     
     return *this;
+}
+
+inline void AudioParameterIntVk::resetToDefaultValue()
+{
+    *this = convertFrom0to1(defaultValue);
+}
+
+inline bool AudioParameterIntVk::isDefaultValue()
+{
+    return fabs(getDefaultValue() - getValue()) < std::numeric_limits<float>::epsilon();
 }
 
 #endif // __AUDIOPARAMETERINTVK_HEADER_038746_

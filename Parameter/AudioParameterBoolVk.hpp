@@ -27,6 +27,7 @@
 #define __AUDIOPARAMETERBOOLVK_HEADER_83658734_
 
 #include "../JuceLibraryCode/JuceHeader.h"
+#include <atomic>
 
 class JUCE_API AudioParameterBoolVk  : public AudioProcessorParameterWithID
 {
@@ -42,8 +43,8 @@ public:
     AudioParameterBoolVk (String parameterID,
                           String name,
                           bool defaultValue,
-                          std::function<void(float)> setValueCallback);
-
+                          std::function<void(float, String)> setValueCallback);
+    
     
     /** Destructor. */
     ~AudioParameterBoolVk();
@@ -56,10 +57,12 @@ public:
     /** Changes the parameter's current value to a new boolean. */
     AudioParameterBoolVk& operator= (bool newValue);
     
+    inline void resetToDefaultValue();
+    inline bool isDefaultValue();
     
 protected:
     //==============================================================================
-    float value, defaultValue;
+    std::atomic<float> value, defaultValue;
     
     float getValue() const override;
     void setValue (float newValue) override;
@@ -67,15 +70,15 @@ protected:
     int getNumSteps() const override;
     String getText (float, int) const override;
     float getValueForText (const String&) const override;
-
+    
 protected:
-    void setSetValueCallback(std::function<void(float)> setValueCallback)
+    void setSetValueCallback(std::function<void(float, String)> setValueCallback)
     {
         _setValueCallback = setValueCallback;
     }
     
 protected:
-    std::function<void(float)> _setValueCallback;
+    std::function<void(float, String)> _setValueCallback;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioParameterBoolVk)
 };
@@ -83,16 +86,16 @@ protected:
 inline AudioParameterBoolVk::AudioParameterBoolVk (String pid, String nm, bool def)
 : AudioProcessorParameterWithID (pid, nm)
 , value (def ? 1.0f : 0.0f)
-, defaultValue (value)
+, defaultValue (float(value))
 , _setValueCallback(nullptr)
 {
 }
 
 inline AudioParameterBoolVk::AudioParameterBoolVk (String pid, String nm,
-                                                   bool def, std::function<void(float)> setValueCallback)
+                                                   bool def, std::function<void(float, String)> setValueCallback)
 : AudioProcessorParameterWithID (pid, nm)
 , value (def ? 1.0f : 0.0f)
-, defaultValue (value)
+, defaultValue (float(value))
 , _setValueCallback(setValueCallback)
 {
 }
@@ -108,7 +111,7 @@ inline void AudioParameterBoolVk::setValue (float newValue)
 {
     value = newValue;
     if (_setValueCallback)
-        _setValueCallback(newValue);
+        _setValueCallback(value, paramID);
 }
 
 inline float AudioParameterBoolVk::getDefaultValue() const
@@ -141,5 +144,14 @@ inline AudioParameterBoolVk& AudioParameterBoolVk::operator= (bool newValue)
     return *this;
 }
 
-#endif // __AUDIOPARAMETERBOOLVK_HEADER_83658734_
+inline void AudioParameterBoolVk::resetToDefaultValue()
+{
+    *this = defaultValue >= 0.5f;
+}
 
+inline bool AudioParameterBoolVk::isDefaultValue()
+{
+    return fabs(getDefaultValue() - getValue()) < std::numeric_limits<float>::epsilon();
+}
+
+#endif // __AUDIOPARAMETERBOOLVK_HEADER_83658734_
