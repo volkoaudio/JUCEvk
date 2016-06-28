@@ -3,7 +3,7 @@ Some classes for JUCE library
 
 I added three AudioParameter* classes because in Juce4.1 some of theirs members are private. That means I can't use these private members with inheritance. Normally I expected some of them would be protected and some of them would be public. 
 
-I made private members protected and public and add std::function<void(float)> member. 
+I made private members protected and public and add std::function<void(float, String)> member. 
 
 Example: 
 
@@ -16,7 +16,7 @@ AudioParameterFloatVk *_paramFloat;
 In PluginProcessor.cpp
 
 <code>
-auto lambdaParamFloat = &#91;this&#93; (float paramValue)
+auto lambdaParamFloat = &#91;this&#93; (float paramValue, String paramId)
 {
 Logger::getCurrentLogger()->writeToLog(String("ParamFloat: ") + String(paramValue));
 };
